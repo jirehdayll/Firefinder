@@ -1,0 +1,184 @@
+.home-link {
+    font-family: 'Kanit', sans-serif;
+    color: #ffffff;
+    font-size: 18px;
+    text-decoration: none;
+    border: 2px solid #ffffff;
+    border-radius: 8px;
+    padding: 4px 16px;
+    background: transparent;
+    transition: background 0.2s, color 0.2s, border-color 0.2s;
+    display: inline-block;
+    margin-left: 50px;
+    margin-top: 30px;
+}
+
+.home-link:hover {
+    background: #ffffff;
+    color: #000000;
+    border-color: #c2c2c2;
+}
+   
+   
+   table { 
+         width: 100%; 
+    border-collapse: separate; /* Change from collapse to separate */
+    border-spacing: 0 12px;    /* Adds 12px vertical space between rows */
+    margin-top: 0px;
+    }
+    
+   .table-wrapper {
+    width: 102%;
+    margin-top: 2rem; /* Reduce the top margin to move the table closer to the triangle */
+
+}
+    th, td { 
+        padding: 16px 18px; 
+        border: 0px solid #000000; 
+        text-align: left; 
+        background-color: #3d3d3d;
+    }
+    th {   /* first name etc */
+    font-family: 'Kanit', sans-serif;
+    font-weight: 400;
+    font-size: 20px;
+    letter-spacing: 1px;
+    color: #ffffff;
+    background: #141414;
+    text-align: center;
+}
+/* ...existing code... */
+td:last-child input,
+
+td:last-child { /*edit deete */
+    display: flex;
+    align-items: center;      /* Vertically align button with inputs */
+    justify-content: center;  /* Center horizontally */
+    height: 100%;             /* Ensure full cell height */
+    padding: 10px 18px;   /* Match horizontal padding of other cells */
+    gap: 12px;
+
+}
+td:last-child button {
+    width: 80%;               /* Match input width */
+    min-width: 80px;         /* Adjust as needed */
+    padding: 10px 1px;           /* Match input height */
+    box-sizing: border-box;
+    text-align: center;
+    margin: 0;
+    display: block;
+    margin-top: 18px;
+    cursor: pointer;
+    border-radius: 50px;
+    background-color: #9a1919;
+    color: #ffffff;
+}
+/* ...existing code... */
+td:last-child button:hover{
+    background: linear-gradient(180deg, #ff0e0e, #3b0909);
+}
+
+   input[type="text"], input[type="email"] { 
+    font-size: 15px;
+    width: 100;         /* Set input box width to 100px */
+    padding: 8px 8px;     /* Reasonable padding for visibility */
+    margin: 0 4px;
+    box-sizing: border-box;
+    text-align: center;
+    background: #141414;
+    color: #ffffff;
+     background: transparent;  
+     border: none;              /* Remove border */
+    outline: none;             /* Remove focus outline */
+    border-radius: 0;  
+}
+
+    button {
+        margin-top: 10px;
+         margin-right: 5px;
+          padding: 5px 10px; 
+    
+    }
+
+    form input { 
+        margin: 5px 10px 5px 0; 
+    }
+
+    
+
+
+body {
+    margin: 0; /* Remove default margin */
+    padding: 0; /* Remove default padding */
+    font-family: kanit, sans-serif;
+    overflow: hidden; /* Prevent scrollbars */
+    background-color: #1d1d1d;
+}
+.rectangle {
+    height: 70px;
+    width: 100%;
+    background: linear-gradient(180deg, #ff0e0e, #3b0909); /* Gradient from dark gray to light gray */
+    text-align: center;
+    padding-top: 10px; /* Add top margin for the text */
+    box-sizing: border-box; /* Ensure padding doesn't affect height */
+    font-weight: 500px;
+    font-size: 30px;
+    color: rgb(255, 255, 255);
+    position: relative;
+}
+.rectangle img {
+    height: 45px; /* Adjust logo size */
+    position: absolute; /* Position the logo absolutely */
+    left: 40px; /* Add space from the left edge */
+    border-radius: 50%;
+}
+.rectangle img:nth-child(2) {
+    margin-left: 75px; /* Add space between the two logos */
+}
+
+.dropdown img#icon {
+    cursor: pointer;
+    height: 35px;
+    position: absolute; /* Position it absolutely within the rectangle */
+    top: 50%; /* Center vertically */
+    transform: translateY(-60%); /* Adjust for perfect vertical centering */
+    z-index: 4;
+}
+
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+    .dropdown-content {
+        display: block; /* Keep it block for transition effects */
+        position: absolute;
+        background: linear-gradient(180deg, #3a3a3a, #11142c);
+        min-width: 150px;
+        box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.5);
+        z-index: 4;
+        margin-left: 67cap;
+        margin-top: 3cap;
+        border-radius: 10px;
+        font-size: 16px;
+        opacity: 0; /* Initially hidden */
+        visibility: hidden; /* Prevent interaction when hidden */
+        transition: opacity 0.3s ease, visibility 0.3s ease; /* Smooth fade-in/out */
+    }
+
+.dropdown-content a {
+    color: rgb(255, 255, 255);
+    padding: 5px 16px;
+    text-decoration: none;
+    display: block;
+}
+
+.dropdown-content a:hover {
+    background-color: #1c1c1c;
+    border-radius: 5px;
+}
+.dropdown:hover .dropdown-content {
+    opacity: 1; /* Show dropdown */
+    visibility: visible; /* Make it interactable */
+}
+

@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900&family=National+Park:wght@200..800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styletable.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <title>Admin Dashboard</title>
+
+</head>
+
+<body>
+  <div class="rectangle">
+        <img src="GC Logo.png" alt="Logo"> <!-- Replace 'logo.png' with your logo file path -->
+        <img src="Fire Dep Logo.jpg">
+        
+        <!-- Dropdown for the icon -->
+        <!-- Dropdown for the icon -->
+<div class="dropdown">
+    <img src="icon.png" id="icon" alt="Icon" style="margin-left: 36.6cap;">
+    <div class="dropdown-content">
+        <a href="Table.html">Crew</a>
+        <a href="#report">Report</a>
+        <a href="#logout">Logout</a>
+    </div>
+</div>
+        
+        <span>ADMIN</span>
+  </div>
+
+   <div>
+  <a href="Admin.html" class="home-link">Home</a>
+</div>
+
+  <div class="table-wrapper">
+  <div class="scrollable-table">
+    <table style="width: 40%; margin: 0 auto;">
+      <!-- Members Table -->
+      <thead>
+        <tr>
+          <th>First Name</th>
+          <th>Surname</th>
+          <th>Email</th>
+          <th>Position</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="membersTableBody"></tbody>
+      <tfoot>
+  <tr>
+    <form id="deployForm">
+      <td><input type="text" id="firstname" placeholder="First Name" required></td>
+      <td><input type="text" id="lastname" placeholder="Last Name" required></td>
+      <td><input type="email" id="email" placeholder="Email" required></td>
+      <td><input type="text" id="position" placeholder="Position" required></td>
+      <td>
+        <select id="status" required>
+          <option value="Active">Active</option>
+          <option value="Inactive">Off-Duty</option>
+        </select>
+      </td>
+      <td><button type="submit">Deploy Member</button></td>
+    </form>
+  </tr>
+</tfoot>
+
+  
+  <!-- Firebase App SDK -->
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js';
+    import {
+      getFirestore, collection, getDocs, addDoc,
+      updateDoc, deleteDoc, doc, serverTimestamp
+    } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js';
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBtraV34vofWZK_d8gcZPRP0U7TgYIuXW4",
+      authDomain: "firefinder-d5c0a.firebaseapp.com",
+      projectId: "firefinder-d5c0a",
+      storageBucket: "firefinder-d5c0a.appspot.com",
+      messagingSenderId: "221428549294",
+      appId: "1:221428549294:web:be5a7164bb363eaf9e0f3f"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const deployForm = document.getElementById('deployForm');
+    const tableBody = document.getElementById('membersTableBody');
+
+    deployForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+
+    const firstName = document.getElementById('firstname').value.trim();
+    const lastName = document.getElementById('lastname').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const position = document.getElementById('position').value.trim();
+    const status = document.getElementById('status').value;
+
+    if (!firstName || !lastName || !email || !position || !status) {
+      alert('Please fill out all fields.');
+      return;
+    }
+
+    // Save data to localStorage
+    localStorage.setItem('name', `${firstName} ${lastName}`);
+    localStorage.setItem('position', position);
+    localStorage.setItem('status', status);
+
+    try {
+      await addDoc(collection(db, 'Dashboard'), {
+        firstName, lastName, email, position, status,
+        timestamp: serverTimestamp()
+      });
+      alert('Member deployed successfully!');
+      deployForm.reset();
+      loadMembers(); // Refresh the table
+    } catch (e) {
+      alert('Failed to deploy member: ' + e.message);
+    }
+  });
+
+async function loadMembers() {
+  tableBody.innerHTML = '';
+  const querySnapshot = await getDocs(collection(db, 'Dashboard'));
+  querySnapshot.forEach(docSnap => {
+    const data = docSnap.data();
+    const row = document.createElement('tr');
+
+    row.innerHTML = `
+      <td><input type="text" value="${data.firstName}" data-field="firstName" disabled /></td>
+      <td><input type="text" value="${data.lastName}" data-field="lastName" disabled /></td>
+      <td><input type="email" value="${data.email}" data-field="email" disabled /></td>
+      <td><input type="text" value="${data.position}" data-field="position" disabled /></td>
+      <td><input type="text" value="${data.status === 'Active' ? 'Active' : 'Off-Duty'}" data-field="status" disabled /></td>
+      <td>
+        <button onclick="editTableRow('${docSnap.id}', this)">Edit</button>
+        <button onclick="deleteMember('${docSnap.id}')">Delete</button>
+      </td>
+    `;
+    tableBody.appendChild(row);
+  });
+}
+
+    // Function to toggle between Edit and Save
+    window.editTableRow = async function(id, button) {
+  const row = button.closest('tr');
+  const inputs = row.querySelectorAll('input:not([data-field="status"])'); // Exclude the status field
+
+  const isEditing = button.textContent === 'Edit';
+
+  if (isEditing) {
+    inputs.forEach(input => input.disabled = false);
+    button.textContent = 'Save';
+  } else {
+    const updatedData = {};
+    inputs.forEach(input => {
+      updatedData[input.dataset.field] = input.value.trim();
+      input.disabled = true;
+    });
+
+    try {
+      await updateDoc(doc(db, 'Dashboard', id), updatedData);ca
+      alert('Member updated successfully');
+      button.textContent = 'Edit';
+    } catch (error) {
+      alert('Error updating member: ' + error.message);
+    }
+  }
+};
+
+    window.deleteMember = async function(id) {
+      if (!confirm("Are you sure you want to delete this member?")) return;
+
+      try {
+        await deleteDoc(doc(db, 'Dashboard', id));
+        alert('Member deleted successfully');
+        loadMembers(); // Refresh table
+      } catch (error) {
+        alert('Error deleting member: ' + error.message);
+      }
+    };
+
+    loadMembers();
+  </script>
+
+</body>
+</html>

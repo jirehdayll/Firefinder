@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Location Picker with Route</title>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+  <!-- Leaflet CSS & JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css">
+  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+
+  <!-- Routing and Geocoder -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css">
+  <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.min.js"></script>
+  <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css">
+
+  <style>
+    /* General Styles */
+  html, body {
+  height: 100%;
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background-color: #f5f6fa;
+  overflow: hidden; /* Prevent scrolling */
+}
+
+   .map-container {
+    position: relative;
+    height: calc(100vh - 70px); /* Adjust height to account for the rectangle */
+    display: flex;
+    flex-direction: column;
+}
+
+#map {
+    flex: 1;
+    height: 100%;
+    border-radius: 10px;
+    z-index: 0; /* Ensure the map stays below the rectangle */
+}
+
+    .map-overlay-button {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1;
+      background-color: #851212;
+      color: white;
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    }
+
+    .map-overlay-button:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+
+    .status {
+      position: absolute;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1000;
+      padding: 10px;
+      background-color: #fff;
+      border-radius: 6px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+      font-size: 14px;
+    }
+
+    .status.success {
+      color: green;
+    }
+
+    .status.error {
+      color: red;
+    }
+
+    .status.info {
+      color: blue;
+    }
+
+    .rectangle {
+    height: 70px;
+    width: 100%;
+    background: linear-gradient(180deg, #ff0e0e, #3b0909);
+    text-align: center;
+    padding-top: 10px;
+    box-sizing: border-box;
+    font-weight: 500px;
+    font-size: 30px;
+    color: rgb(255, 255, 255);
+    position: relative;
+    z-index: 1000; /* Ensure the rectangle stays on top */
+
+}
+
+.rectangle img {
+    height: 45px;
+    position: absolute;
+    left: 40px;
+    border-radius: 50%;
+}
+
+.rectangle img:nth-child(2) {
+    margin-left: 75px;
+}
+
+/* Dropdown Menu */
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown img#icon {
+    cursor: pointer;
+    height: 35px;
+    position: absolute;
+    top: 50%;
+    left: 0px; /* Move the icon explicitly to the left */
+    transform: translateY(-50%);
+    z-index: 4;
+}
+
+.dropdown-content {
+    display: block;
+    position: absolute;
+    background: linear-gradient(180deg, #3a3a3a, #11142c);
+    min-width: 150px;
+    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.5);
+    z-index: 4;
+    margin-left: 63cap;
+    margin-top: 3cap;
+    border-radius: 10px;
+    font-size: 16px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.dropdown-content a {
+    color: rgb(255, 255, 255);
+    padding: 5px 16px;
+    text-decoration: none;
+    display: block;
+}
+
+.dropdown-content a:hover {
+    background-color: #1c1c1c;
+    border-radius: 5px;
+}
+
+.dropdown:hover .dropdown-content {
+    opacity: 1;
+    visibility: visible;
+}
+  </style>
+</head>
+<body>
+     <div class="rectangle">
+        <img src="GC Logo.png" alt="Logo"> <!-- Replace 'logo.png' with your logo file path -->
+        <img src="Fire Dep Logo.jpg">
+
+        <div class="dropdown">
+            <img src="icon.png" id="icon" alt="Icon" style="margin-left: 36.6cap;">
+            <div class="dropdown-content">
+                <a href="Table.html">Crew</a>
+                <a href="#report">Report</a>
+                <a href="#logout">Logout</a>
+            </div>
+        </div>
+        
+        <span>ADMIN</span>
+    </div>
+
+    <!-- Map Container -->
+    <div class="map-container">
+        <!-- Save Location Button -->
+        <button id="saveButton" class="map-overlay-button" disabled>Save Location</button>
+
+        <!-- Map -->
+        <div id="map"></div>
+
+        <!-- Status Message -->
+        <div id="status" class="status"></div>
+    </div>
+
+
+  <script>
+    // Firebase Initialization
+    const firebaseConfig = {
+      apiKey: "AIzaSyBtraV34vofWZK_d8gcZPRP0U7TgYIuXW4",
+      authDomain: "firefinder-d5c0a.firebaseapp.com",
+      databaseURL: "https://firefinder-d5c0a-default-rtdb.firebaseio.com",
+      projectId: "firefinder-d5c0a",
+      storageBucket: "firefinder-d5c0a.firebasestorage.app",
+      messagingSenderId: "221428549294",
+      appId: "1:221428549294:web:be5a7164bb363eaf9e0f3f"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
+    // Map Setup
+    const map = L.map('map').setView([14.8292, 120.2820], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    const gordonCollegeLatLng = L.latLng(14.832005, 120.282648);
+    L.marker(gordonCollegeLatLng).addTo(map)
+      .bindPopup('Gordon College')
+      .openPopup();
+
+    let selectedLocation = null;
+    let marker = null;
+    const saveButton = document.getElementById('saveButton');
+    const statusElement = document.getElementById('status');
+
+    // Map Click Event
+    map.on('click', function(e) {
+      selectedLocation = e.latlng;
+      if (marker) map.removeLayer(marker);
+      marker = L.marker(selectedLocation).addTo(map)
+               .bindPopup("Selected Location")
+               .openPopup();
+      saveButton.disabled = false; // Enable the button
+      updateStatus("Location selected. Click 'Save Location' to save.", "info");
+    });
+
+    // Save Location Button Click Event
+    saveButton.addEventListener('click', function() {
+      if (!saveButton.disabled) {
+        saveLocation();
+      }
+    });
+
+    // Save Location
+    function saveLocation() {
+      if (!selectedLocation) {
+        updateStatus("No location selected.", "error");
+        return;
+      }
+
+      const locationData = {
+        latitude: selectedLocation.lat,
+        longitude: selectedLocation.lng,
+        timestamp: Date.now()
+      };
+
+      saveButton.disabled = true; // Disable the button after saving
+      updateStatus("Saving location...", "info");
+
+      database.ref("Locations").push(locationData).then(() => {
+        updateStatus(`Location saved successfully! (${selectedLocation.lat}, ${selectedLocation.lng})`, "success");
+      }).catch(error => {
+        console.error("Error saving location: ", error);
+        updateStatus(`Failed to save location: ${error.message}`, "error");
+        saveButton.disabled = false; // Re-enable the button if saving fails
+      });
+    }
+
+    // Update Status
+    function updateStatus(msg = '', type = 'info') {
+      statusElement.textContent = msg;
+      statusElement.className = 'status ' + type;
+    }
+  </script>
+</body>
+</html>
