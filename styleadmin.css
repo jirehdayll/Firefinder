@@ -83,6 +83,10 @@
     z-index: 1000; /* Ensure the rectangle stays on top */
 
 }
+.rectangle span {
+     position: relative; /* Allows fine-tuning with top */
+    top: 10px; /* Move it down */
+}
 
 .rectangle img {
     height: 45px;
@@ -145,42 +149,92 @@
 }
 
 
+/* Trapezoid */
 .trapezoid {
-    position: absolute;
-    bottom: 0px;
-    left: -2cap;
-    width: 15rem;
-    height: 70px;
-    background-color: #650b0b;
-    clip-path: polygon(25px 0, calc(100% - 40px) 0, 100% 100%, 0 100%);
-    color: #f5f6fa;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 33px;
-    font-weight: bold;
-    z-index: 1000;
-    cursor: pointer; /* Make it clickable */
-    transition: bottom 0.3s ease; /* Smooth animation */
+  position: absolute;
+  bottom: 0;
+  left: -2cap;
+  width: 15rem;
+  height: 70px;
+  background-color: #650b0b;
+  clip-path: polygon(25px 0, calc(100% - 40px) 0, 100% 100%, 0 100%);
+  color: #f5f6fa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 33px;
+  font-weight: bold;
+  z-index: 1000;
+  cursor: pointer;
+  transition: bottom 0.3s ease; /* Smooth animation */
 }
 
+
 .trapezoid.moved-up {
-    bottom: 150px; /* Move the trapezoid up */
+  bottom: 349px; /* Adjust this value to match the table height */
 }
 
 .table-container {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 45%;
-    height: 130px; /* Adjust height as needed */
-    background-color: white;
-    border-top: 2px solid #650b0b;
-    overflow: auto;
-    z-index: 999; /* Ensure it appears above the map */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 10px;
-    box-shadow: 0px -2px 10px rgba(0, 0, 0, 0.2);
+  position: absolute;
+  bottom: -22px;
+  left: -5px;
+  width: 40%;
+  height: auto; /* Allow dynamic height */
+  max-height: 500px; /* Optional: Limit max height */
+  background: linear-gradient(180deg, #9d1111, #460202);
+  overflow: auto;
+  z-index: 999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-bottom: 0px;
+  box-shadow: 0px -2px 10px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+    color: #fff;
 }
+
+/* Scrollable Table */
+.scrollable-table {
+ margin-right: 100px;
+  width: 100%; /* Ensure the table takes the full width of the container */
+  max-height: 400px;
+  overflow-y: auto;
+}
+/* Table Styles */
+table {
+  max-width: 100%;
+  width: 100%; /* Make the table fit the container */
+  border-collapse: collapse;
+  text-align: center;
+  font-family: Arial, sans-serif;
+  margin-left: -50px;
+  transform: translateX(-10rem);
+
+  
+}
+
+thead {
+  background: linear-gradient(180deg, #560c0c, #290404);
+  color: white;
+ 
+  
+}
+
+th, td {
+  padding: 12px;
+   font-size: 20px;
+  
+}
+
+th {
+  font-size: 20px;
+  font-weight: bold;
+  text-transform: uppercase;
+  color: white;
+}
+
+tbody tr:hover {
+  background-color: #3e0c0c;
+  cursor: pointer;
+}
+
