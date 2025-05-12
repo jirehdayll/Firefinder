@@ -43,11 +43,33 @@
     <div id="trapezoid" class="trapezoid">UNITS</div>
 
     <!-- Table Container -->
-    <div id="tableContainer" class="table-container" style="display: none;"></div>
+  <div id="tableContainer" class="table-container" style="display: none;">
+  <div class="scrollable-table">
+    <table style="width: 100%; margin-left: 10rem;">
+      <thead>
+        <tr>
+          <th padding: 8px;>Name</th>
+          <th padding: 8px;>Position</th>
+          <th padding: 8px;>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="border: 1px solid #ddd; padding: 8px;">Row 1, Col 1</td>
+          <td style="border: 1px solid #ddd; padding: 8px;">Row 1, Col 2</td>
+          <td style="border: 1px solid #ddd; padding: 8px;">Row 1, Col 3</td>
+        </tr>
+        <tr>
+          <td>Row 2, Col 1</td>
+          <td style="border: 1px solid #ddd; padding: 8px;">Row 2, Col 2</td>
+          <td style="border: 1px solid #ddd; padding: 8px;">Row 2, Col 3</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
 
-    <!-- Save Location Button -->
-    <button id="saveButton" class="map-overlay-button" disabled>Save Location</button>
-
+ 
     <!-- Map -->
     <div id="map"></div>
 
@@ -55,28 +77,12 @@
     <div id="status" class="status"></div>
   </div>
 
- <div class="table-wrapper">
-  <div class="scrollable-table">
-    <table style="width: 40%; margin: 0 auto;">
-      <thead>
-        <tr>
-          <th>First Name</th>
-          <th>Surname</th>
-          <th>Email</th>
-          <th>Position</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody id="adminMembersTableBody"></tbody>
-    </table>
-  </div>
-</div>
 
  <script type="module">
   import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js';
   import { getFirestore, collection, getDocs } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js';
 
-    const firebaseConfig = {
+  const firebaseConfig = {
     apiKey: "AIzaSyBtraV34vofWZK_d8gcZPRP0U7TgYIuXW4",
     authDomain: "firefinder-d5c0a.firebaseapp.com",
     projectId: "firefinder-d5c0a",
@@ -85,104 +91,87 @@
     appId: "1:221428549294:web:be5a7164bb363eaf9e0f3f"
   };
 
+  // Initialize Firebase
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
-  const adminTableBody = document.getElementById('adminMembersTableBody');
+  // Map Setup
+  const map = L.map('map').setView([14.832, 120.2820], 14.5);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map);
 
- async function loadAdminMembers() {
-  adminTableBody.innerHTML = ''; // Clear the table body
-  try {
+  const gordonCollegeLatLng = L.latLng(14.832005, 120.282648);
+  L.marker(gordonCollegeLatLng).addTo(map)
+    .bindPopup('Gordon College')
+    .openPopup();
+
+  let selectedLocation = null;
+  let marker = null;
+  const saveButton = document.getElementById('saveButton');
+  const statusElement = document.getElementById('status');
+
+  // Map Click Event
+  map.on('click', function(e) {
+    selectedLocation = e.latlng;
+    if (marker) map.removeLayer(marker);
+    marker = L.marker(selectedLocation).addTo(map)
+             .bindPopup("Selected Location")
+             .openPopup();
+    saveButton.disabled = false; // Enable the button
+    updateStatus("Location selected. Click 'Save Location' to save.", "info");
+  });
+
+  // Toggle Table Visibility
+ const trapezoid = document.getElementById('trapezoid');
+const tableContainer = document.getElementById('tableContainer');
+
+function adjustTrapezoidPosition() {
+  const tableHeight = tableContainer.offsetHeight; // Get the height of the table container
+  const offset = -22; // Adjust this value to lower the trapezoid
+  trapezoid.style.bottom = `${tableHeight + offset}px`; // Set the trapezoid's bottom position with offset
+}
+// Add event listener to adjust position when the table is toggled
+trapezoid.addEventListener('click', () => {
+  if (tableContainer.style.display === 'none') {
+    tableContainer.style.display = 'block'; // Show the table
+    adjustTrapezoidPosition(); // Adjust trapezoid position
+  } else {
+    tableContainer.style.display = 'none'; // Hide the table
+    trapezoid.style.bottom = '0'; // Reset trapezoid position
+  }
+});
+
+
+// Adjust position on page load
+adjustTrapezoidPosition();
+
+  // Load Members from Firestore
+  const tableBody = document.querySelector('#tableContainer tbody');
+
+  async function loadMembers() {
+    tableBody.innerHTML = '';
     const querySnapshot = await getDocs(collection(db, 'Dashboard'));
-    if (querySnapshot.empty) {
-      console.log('No members found in Firestore.');
-      adminTableBody.innerHTML = '<tr><td colspan="5">No members found.</td></tr>';
-      return;
-    }
-
     querySnapshot.forEach(docSnap => {
       const data = docSnap.data();
-      console.log('Fetched member:', data); // Debugging: Log each member's data
       const row = document.createElement('tr');
 
       row.innerHTML = `
-        <td>${data.firstName || 'N/A'}</td>
-        <td>${data.lastName || 'N/A'}</td>
-        <td>${data.email || 'N/A'}</td>
-        <td>${data.position || 'N/A'}</td>
+        <td>${data.fullName}</td>
+        <td>${data.position}</td>
         <td>${data.status === 'Active' ? 'Active' : 'Off-Duty'}</td>
       `;
-      adminTableBody.appendChild(row);
+      tableBody.appendChild(row);
     });
-  } catch (error) {
-    console.error('Error loading members:', error);
-    adminTableBody.innerHTML = '<tr><td colspan="5">Failed to load members.</td></tr>';
   }
-}
 
-  loadAdminMembers();
+  loadMembers();
 
-    // Map Setup
-    const map = L.map('map').setView([14.832, 120.2820], 14.5);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(map);
-
-    const gordonCollegeLatLng = L.latLng(14.832005, 120.282648);
-    L.marker(gordonCollegeLatLng).addTo(map)
-      .bindPopup('Gordon College')
-      .openPopup();
-
-    let selectedLocation = null;
-    let marker = null;
-    const saveButton = document.getElementById('saveButton');
-    const statusElement = document.getElementById('status');
-
-    // Map Click Event
-    map.on('click', function(e) {
-      selectedLocation = e.latlng;
-      if (marker) map.removeLayer(marker);
-      marker = L.marker(selectedLocation).addTo(map)
-               .bindPopup("Selected Location")
-               .openPopup();
-      saveButton.disabled = false; // Enable the button
-      updateStatus("Location selected. Click 'Save Location' to save.", "info");
-    });
-
-    // Save Location Button Click Event
-    saveButton.addEventListener('click', function() {
-      if (!saveButton.disabled) {
-        saveLocation();
-      }
-    });
-
-    // Save Location
-    function saveLocation() {
-      if (!selectedLocation) {
-        updateStatus("No location selected.", "error");
-        return;
-      }
-
-      const locationData = {
-        latitude: selectedLocation.lat,
-        longitude: selectedLocation.lng,
-        timestamp: Date.now()
-      };
-
-      saveButton.disabled = true; // Disable the button after saving
-      updateStatus("Saving location...", "info");
-
-      database.ref("Locations").push(locationData).then(() => {
-        updateStatus(`Location saved successfully! (${selectedLocation.lat}, ${selectedLocation.lng})`, "success");
-      }).catch(error => {
-        console.error("Error saving location: ", error);
-        updateStatus(`Failed to save location: ${error.message}`, "error");
-        saveButton.disabled = false; // Re-enable the button if saving fails
-      });
-    }
-
-    // Update Status
-  
-  </script>
+  // Update Status Message
+  function updateStatus(message, type) {
+    statusElement.textContent = message;
+    statusElement.className = `status ${type}`;
+  }
+</script>
 </body>
 </html>
